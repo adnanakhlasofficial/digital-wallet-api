@@ -3,6 +3,7 @@ import app from "./app";
 import dotenv from "dotenv";
 import { connect } from "mongoose";
 import { env } from "./configs/env";
+import { seedAdmin } from "./utils/seedAdmin";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ async function startServer() {
     });
     await connect(env.MONGODB_URI);
     console.log("✅ MongoDB connected successfully via Mongoose");
+    await seedAdmin();
     handleProcessEvents();
   } catch (error) {
     console.error("❌ Error during server startup:", error);

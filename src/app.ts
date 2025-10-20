@@ -4,6 +4,7 @@ import cors from "cors";
 import express from "express";
 import { env } from "./configs/env";
 import router from "./routes";
+import globalError from "./middlewares/globalError.middleware";
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use("/api/v1", router);
 app.get("/", (_req, res) => {
   res.send("API is running");
 });
+
+// Global Error handler
+app.use(globalError);
 
 // 404 Handler
 app.use((req, res, next) => {

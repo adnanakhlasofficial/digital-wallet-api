@@ -11,8 +11,12 @@ interface IENV {
   JWT_REFRESH_SECRET: string;
   JWT_REFRESH_EXPIRES_AT: string;
   BCRYPT_SALT: string;
+  ADMIN_NAME: string;
   ADMIN_EMAIL: string;
   ADMIN_PASSWORD: string;
+  ADMIN_PHONE: string;
+  ADMIN_NID: string;
+  ADMIN_BIRTH: string;
 }
 
 const REQUIRED_ENV_KEYS: (keyof IENV)[] = [
@@ -25,8 +29,12 @@ const REQUIRED_ENV_KEYS: (keyof IENV)[] = [
   "JWT_REFRESH_SECRET",
   "JWT_REFRESH_EXPIRES_AT",
   "BCRYPT_SALT",
+  "ADMIN_NAME",
   "ADMIN_EMAIL",
   "ADMIN_PASSWORD",
+  "ADMIN_PHONE",
+  "ADMIN_NID",
+  "ADMIN_BIRTH",
 ];
 
 function loadEnv(): IENV {
