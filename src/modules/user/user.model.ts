@@ -28,6 +28,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
+      default: UserRole.USER,
       enum: {
         values: Object.values(UserRole),
         message: "{VALUE} is not acceptable",
@@ -40,21 +41,28 @@ const userSchema = new Schema<IUser>(
     },
     nid: {
       type: String,
+      required: true,
     },
     address: {
       type: String,
     },
     dateOfBirth: {
       type: Date,
+      require: true,
     },
     isVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   { timestamps: true, versionKey: false }
 );
 
-const User = model<IUser>("User", userSchema);
+userSchema.virtual("wallet", {
+  ref: "Wallet",
+  localField: "_id",
+  foreignField: "user",
+  justOne: true,
+});
 
-export default User;
+export const User = model<IUser>("User", userSchema);

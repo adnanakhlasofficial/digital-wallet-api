@@ -1,7 +1,8 @@
 import { env } from "../configs/env";
 import { UserRole } from "../modules/user/user.interface";
-import User from "../modules/user/user.model";
+import { User } from "../modules/user/user.model";
 import bcrypt from "bcrypt";
+import { WalletService } from "../modules/wallet/wallet.service";
 
 export async function seedAdmin() {
   try {
@@ -10,7 +11,7 @@ export async function seedAdmin() {
       $and: [{ role: UserRole.ADMIN }, { email: env.ADMIN_EMAIL }],
     });
     if (existingAdmin) {
-      console.log("✅ Admin already exists:", existingAdmin.email);
+      console.log("✅ Admin already exists.");
       return;
     }
 
@@ -31,11 +32,11 @@ export async function seedAdmin() {
       dateOfBirth: env.ADMIN_BIRTH,
       isVerified: true,
     });
-
+    await WalletService.createWallet(admin._id, admin.email);
     // strip sensitive fields before logging/returning
     const { password, _id, ...safeAdmin } = admin.toObject();
 
-    console.log("🚀 Admin seeded successfully:");
+    console.log("🚀 Admin seeded successfully.");
     return safeAdmin;
   } catch (error) {
     console.error("❌ Error seeding admin:", error);

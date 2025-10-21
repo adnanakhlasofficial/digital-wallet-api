@@ -10,11 +10,13 @@ export const CreateUserSchema = z.object({
     message:
       "Phone number must be a valid Bangladeshi local format (e.g., 017XXXXXXXX)",
   }),
-  password: z.string(),
+  password: z
+    .string()
+    .length(5, { message: "PIN must be exactly 5 digits" })
+    .regex(/^\d+$/, { message: "PIN must contain only numbers" }),
   role: UserRoleEnum,
   profilePicture: z.string().optional().nullish().default(null),
   nid: z.string().length(10, { message: "NID must be exactly 10 digits long" }),
   address: z.string().optional(),
   dateOfBirth: z.iso.date(),
-  isVerified: z.boolean().optional().default(false),
 });

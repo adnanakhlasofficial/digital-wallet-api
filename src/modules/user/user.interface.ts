@@ -14,9 +14,9 @@ export interface IUser {
   password: string;
   role: UserRole;
   profilePicture?: string;
-  nid?: string;
+  nid: string;
   address?: string;
-  dateOfBirth?: Date;
+  dateOfBirth: Date;
   isVerified?: boolean;
 }
 
