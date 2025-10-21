@@ -1,7 +1,11 @@
 import { model, Schema } from "mongoose";
 import { IUser, UserRole } from "./user.interface";
 
-const userSchema = new Schema<IUser>(
+interface IUserWithId extends IUser {
+  id?: string;
+}
+
+const userSchema = new Schema<IUserWithId>(
   {
     name: {
       type: String,
@@ -55,7 +59,24 @@ const userSchema = new Schema<IUser>(
       default: true,
     },
   },
-  { timestamps: true, versionKey: false }
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true, // keep virtuals like "wallet"
+      transform: function (doc, ret) {
+        const { id, ...rest } = ret; // remove the extra "id"
+        return rest;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        const { id, ...rest } = ret;
+        return rest;
+      },
+    },
+  }
 );
 
 userSchema.virtual("wallet", {

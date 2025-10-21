@@ -15,4 +15,14 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const UserController = { createUser };
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  const me = req.user;
+  sendResponse(res, {
+    status: httpStatus.CREATED,
+    success: true,
+    message: "User profile retrieved successfully.",
+    data: me,
+  });
+});
+
+export const UserController = { createUser, getMe };

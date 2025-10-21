@@ -1,14 +1,14 @@
 [
   {
-    "name": "Adnan Rahman",
-    "email": "adnan.rahman@example.com",
-    "phone": "01712345678",
+    "name": "Super Admin",
+    "email": "admin@digital-wallet.com",
+    "phone": "01712186380",
     "password": "48291",
     "role": "Admin",
     "profilePicture": "https://i.ibb.co.com/B5Rxcxx3/profile-picture.webp",
-    "nid": "1234567890",
+    "nid": "0987654321",
     "address": "Dhaka, Bangladesh",
-    "dateOfBirth": "1995-04-12",
+    "dateOfBirth": "1990-01-01",
     "isVerified": true
   },
   {
