@@ -2,9 +2,10 @@ import AppError from "../../helpers/AppError";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import bcrypt from "bcrypt";
-import { generateToken } from "../../utils/jwt";
+import { generateToken, verifyToken } from "../../utils/jwt";
 import { env } from "../../configs/env";
 import { IAuthCredentials } from "./auth.interface";
+import { JwtPayload } from "jsonwebtoken";
 
 export const login = async (payload: IAuthCredentials) => {
   const user = await User.findOne({ email: payload.email });
@@ -45,4 +46,26 @@ export const login = async (payload: IAuthCredentials) => {
   return { accessToken, refreshToken };
 };
 
-export const AuthService = { login };
+const refreshToken = async (payload: string) => {
+  const decode = verifyToken(payload, env.JWT_REFRESH_SECRET) as JwtPayload;
+  const user = await User.findOne({ phone: decode.phone });
+
+  if (!user) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+  }
+
+  const jwyPayload = {
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+  };
+
+  const newAccessToken = generateToken(
+    jwyPayload,
+    env.JWT_ACCESS_SECRET,
+    env.JWT_ACCESS_EXPIRES_AT
+  );
+  return newAccessToken;
+};
+
+export const AuthService = { login, refreshToken };

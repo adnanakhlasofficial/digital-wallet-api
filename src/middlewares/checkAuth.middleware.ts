@@ -31,7 +31,7 @@ export const checkAuth =
       );
 
       if (!user) {
-        throw new AppError(httpStatus.NOT_FOUND, "User not found");
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
       }
 
       if (!roles.includes(isTokenValid.role)) {

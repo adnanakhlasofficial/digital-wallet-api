@@ -28,4 +28,15 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const AuthController = { login, logout };
+const refreshToken = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies[cookiesName.refreshToken];
+  const newAccessToken = await AuthService.refreshToken(refreshToken);
+  setCookie(res, cookiesName.accessToken, newAccessToken);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Token refresh successfully",
+  });
+};
+
+export const AuthController = { login, logout, refreshToken };
