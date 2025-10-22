@@ -13,6 +13,8 @@ router.post(
   UserController.createUser
 );
 
+router.get("/all", checkAuth(UserRole.ADMIN), UserController.getAllUsers);
+
 router.get("/me", checkAuth(...Object.values(UserRole)), UserController.getMe);
 
 export const UserRouter = router;

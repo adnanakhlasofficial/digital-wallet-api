@@ -6,6 +6,7 @@ const walletSchema = new Schema<IWallet>(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     balance: { type: Number, default: 50 },
     email: { type: String, required: true },
+    phone: { type: String, required: true },
     status: {
       type: String,
       default: WalletStatus.ACTIVE,

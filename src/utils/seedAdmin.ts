@@ -32,7 +32,13 @@ export async function seedAdmin() {
       dateOfBirth: env.ADMIN_BIRTH,
       isVerified: true,
     });
-    await WalletService.createWallet(admin._id, admin.email);
+
+    const walletCreateInfo = {
+      user: admin._id,
+      email: admin.email,
+      phone: admin.phone,
+    };
+    await WalletService.createWallet(walletCreateInfo);
     // strip sensitive fields before logging/returning
     const { password, _id, ...safeAdmin } = admin.toObject();
 

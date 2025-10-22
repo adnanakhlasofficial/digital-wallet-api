@@ -25,9 +25,8 @@ export const checkAuth =
         env.JWT_ACCESS_SECRET
       ) as JwtPayload;
 
-      const user = await User.findOne({ email: isTokenValid.email }).populate(
-        "wallet",
-        "balance email status -_id -user"
+      const user = await User.findOne({ email: isTokenValid.email }).select(
+        "-password -_id"
       );
 
       if (!user) {

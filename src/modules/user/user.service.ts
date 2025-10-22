@@ -14,7 +14,13 @@ const createUser = async (payload: IUser) => {
 
   const user = await User.create(payload);
 
-  const wallet = await WalletService.createWallet(user._id, user.email);
+  const walletCreateInfo = {
+    user: user._id,
+    email: user.email,
+    phone: user.phone,
+  };
+
+  const wallet = await WalletService.createWallet(walletCreateInfo);
 
   const { _id: userID, password, ...safeUser } = user.toObject();
   const { _id: WalletID, user: WalletUser, ...safeWallet } = wallet.toObject();
@@ -22,4 +28,9 @@ const createUser = async (payload: IUser) => {
   return { ...safeUser, ...safeWallet };
 };
 
-export const UserService = { createUser };
+const getAllUsers = async () => {
+  const data = await User.find().select("-_id -password");
+  return data;
+};
+
+export const UserService = { createUser, getAllUsers };

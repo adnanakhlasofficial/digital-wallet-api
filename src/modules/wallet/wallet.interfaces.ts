@@ -6,11 +6,18 @@ export enum WalletStatus {
   SUSPENDED = "Suspended",
 }
 
+export interface ICreateWallet {
+  user: Types.ObjectId;
+  email: string;
+  phone: string;
+}
+
 export interface IWallet {
   _id: Types.ObjectId;
   user: Types.ObjectId;
   balance: number;
   email: string;
+  phone: string;
   status: WalletStatus;
   createdAt?: Date;
   updatedAt?: Date;
