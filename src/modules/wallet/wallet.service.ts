@@ -67,6 +67,7 @@ const getSingleWallet = async (phone: string) => {
         email: "$user.email",
         phone: "$user.phone",
         nid: "$user.nid",
+        role: "$user.role",
       },
     },
     {
