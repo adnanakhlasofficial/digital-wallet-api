@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { Wallet } from "./wallet.model";
 import { ICreateWallet } from "./wallet.interfaces";
+import { env } from "../../configs/env";
 
 const createWallet = async ({ user, email, phone }: ICreateWallet) => {
   const data = await Wallet.create({ user, email, phone });
@@ -9,6 +10,11 @@ const createWallet = async ({ user, email, phone }: ICreateWallet) => {
 
 const getAllWallets = async () => {
   const data = await Wallet.aggregate([
+    {
+      $match: {
+        email: { $ne: env.ADMIN_EMAIL },
+      },
+    },
     {
       $lookup: {
         from: "users",
@@ -24,6 +30,7 @@ const getAllWallets = async () => {
       $addFields: {
         name: "$user.name",
         phone: "$user.phone",
+        role: "$user.role",
       },
     },
     {
