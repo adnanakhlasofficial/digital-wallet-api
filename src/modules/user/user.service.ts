@@ -33,4 +33,9 @@ const getAllUsers = async () => {
   return data;
 };
 
-export const UserService = { createUser, getAllUsers };
+const getSingleUser = async (email: string) => {
+  const data = await User.findOne({ email }).select("-_id -password");
+  return data;
+};
+
+export const UserService = { createUser, getAllUsers, getSingleUser };
