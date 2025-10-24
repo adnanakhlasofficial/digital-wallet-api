@@ -1,0 +1,42 @@
+[
+  {
+    "receiverPhone": "01898765432",
+    "amount": 1000
+  },
+  {
+    "receiverPhone": "01633445566",
+    "amount": 750
+  },
+  {
+    "receiverPhone": "01911223344",
+    "amount": 1200
+  },
+  {
+    "receiverPhone": "01866778899",
+    "amount": 500
+  },
+  {
+    "receiverPhone": "01599001122",
+    "amount": 300
+  },
+  {
+    "receiverPhone": "01755667788",
+    "amount": 850
+  },
+  {
+    "receiverPhone": "01712186380",
+    "amount": 2000
+  },
+  {
+    "receiverPhone": "01977889900",
+    "amount": 650
+  },
+  {
+    "receiverPhone": "01688990011",
+    "amount": 400
+  },
+  {
+    "receiverPhone": "01544556677",
+    "amount": 950
+  }
+]
