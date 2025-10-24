@@ -46,4 +46,23 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const UserController = { createUser, getMe, getAllUsers, getSingleUser };
+const setUserVerificationStatus = catchAsync(
+  async (req: Request, res: Response) => {
+    const email = req.params.email;
+    const data = await UserService.setUserVerificationStatus(email);
+    sendResponse(res, {
+      status: httpStatus.OK,
+      success: true,
+      message: "User verification status has been updated successfully.",
+      data,
+    });
+  }
+);
+
+export const UserController = {
+  createUser,
+  getMe,
+  getAllUsers,
+  getSingleUser,
+  setUserVerificationStatus,
+};

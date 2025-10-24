@@ -27,7 +27,9 @@ const globalError = async (
     success: false,
     message,
     error: err,
-    ...(env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(env.NODE_ENV === "development" && {
+      stack: (err.stack as string).split(/\n\s+/),
+    }),
   });
 };
 

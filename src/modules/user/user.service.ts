@@ -3,6 +3,8 @@ import { IUser } from "./user.interface";
 import bcrypt from "bcrypt";
 import { User } from "./user.model";
 import { WalletService } from "../wallet/wallet.service";
+import AppError from "../../helpers/AppError";
+import httpStatus from "http-status-codes";
 
 const createUser = async (payload: IUser) => {
   const hashedPassword = await bcrypt.hash(
@@ -29,7 +31,9 @@ const createUser = async (payload: IUser) => {
 };
 
 const getAllUsers = async () => {
-  const data = await User.find().select("-_id -password");
+  const data = await User.find({ role: { $ne: "Admin" } }).select(
+    "-_id -password"
+  );
   return data;
 };
 
@@ -38,4 +42,28 @@ const getSingleUser = async (email: string) => {
   return data;
 };
 
-export const UserService = { createUser, getAllUsers, getSingleUser };
+const setUserVerificationStatus = async (email: string) => {
+  const data = await User.findOneAndUpdate(
+    { email },
+    [
+      {
+        $set: { isVerified: { $not: "$isVerified" } },
+      },
+    ],
+    { new: true, projection: { _id: 0, password: 0 } }
+  );
+  if (!data) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Bad Request. The data provided is invalid or incomplete."
+    );
+  }
+  return data;
+};
+
+export const UserService = {
+  createUser,
+  getAllUsers,
+  getSingleUser,
+  setUserVerificationStatus,
+};

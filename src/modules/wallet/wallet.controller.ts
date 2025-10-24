@@ -36,4 +36,21 @@ const getWalletMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const WalletController = { getAllWallet, getSingleWallet, getWalletMe };
+const setWalletStatus = catchAsync(async (req: Request, res: Response) => {
+  const phone = req.params.phone;
+  const status = req?.body?.status;
+  const data = await WalletService.setWalletStatus(phone, status);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Wallet status has been updated successfully.",
+    data,
+  });
+});
+
+export const WalletController = {
+  getAllWallet,
+  getSingleWallet,
+  getWalletMe,
+  setWalletStatus,
+};

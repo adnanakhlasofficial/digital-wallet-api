@@ -19,6 +19,7 @@ export interface IWallet {
   email: string;
   phone: string;
   status: WalletStatus;
+  suspendedUntil?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

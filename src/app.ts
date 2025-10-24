@@ -21,7 +21,7 @@ app.use(cookieParser()); // Parse incoming cookies request
 app.use("/api/v1", router);
 
 // Default route for testing
-app.get("/", (_req, res) => {
+app.get("/", (req, res) => {
   res.send("API is running");
 });
 

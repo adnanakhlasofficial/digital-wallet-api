@@ -1,7 +1,8 @@
-import { Types } from "mongoose";
-import { Wallet } from "./wallet.model";
-import { ICreateWallet } from "./wallet.interfaces";
 import { env } from "../../configs/env";
+import AppError from "../../helpers/AppError";
+import { ICreateWallet, WalletStatus } from "./wallet.interfaces";
+import { Wallet } from "./wallet.model";
+import httpStatus from "http-status-codes";
 
 const createWallet = async ({ user, email, phone }: ICreateWallet) => {
   const data = await Wallet.create({ user, email, phone });
@@ -85,9 +86,39 @@ const getWalletMe = async (email: string) => {
   return data;
 };
 
+const setWalletStatus = async (phone: string, status: WalletStatus) => {
+  if (!status) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Bad Request. The data provided is invalid or incomplete."
+    );
+  }
+  const data = Wallet.findOneAndUpdate(
+    { phone },
+    {
+      $set: {
+        status,
+      },
+    },
+    {
+      new: true,
+      projection: { _id: 0 },
+    }
+  );
+
+  if (!data) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Bad Request. The data provided is invalid or incomplete."
+    );
+  }
+  return data;
+};
+
 export const WalletService = {
   createWallet,
   getAllWallets,
   getSingleWallet,
   getWalletMe,
+  setWalletStatus,
 };

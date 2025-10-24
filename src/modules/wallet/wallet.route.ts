@@ -16,5 +16,10 @@ router.get(
   checkAuth(...Object.values(UserRole)),
   WalletController.getSingleWallet
 );
+router.patch(
+  "/:phone",
+  checkAuth(UserRole.ADMIN),
+  WalletController.setWalletStatus
+);
 
 export const WalletRouter = router;
