@@ -9,11 +9,11 @@ export function getFee(amount: number): number {
   return parseFloat((amount * feeRate).toFixed(2));
 }
 
-export function getNetAmount(
+export function getTotalAmount(
   amount: number,
   fee: number,
   commission?: number
 ): number {
   const totalDeduction = fee + (commission ?? 0);
-  return parseFloat((amount - totalDeduction).toFixed(2));
+  return parseFloat((amount + totalDeduction).toFixed(2));
 }

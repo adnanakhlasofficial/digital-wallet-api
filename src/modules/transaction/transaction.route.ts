@@ -14,6 +14,13 @@ router.post(
   TransactionController.sendBonus
 );
 
+router.post(
+  "/send-money",
+  checkAuth(UserRole.USER),
+  zodValidate(transactionPayloadSchema),
+  TransactionController.sendMoney
+);
+
 router.get(
   "/all",
   checkAuth(UserRole.ADMIN),
