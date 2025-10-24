@@ -42,7 +42,47 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
 };
 
 const getAllTransactions = async () => {
-  const data = await Transaction.find();
+  const data = await Transaction.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "sender",
+        foreignField: "phone", // assuming phone is the match field
+        as: "senderDetails",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "receiver",
+        foreignField: "phone", // same assumption
+        as: "receiverDetails",
+      },
+    },
+    {
+      $unwind: { path: "$senderDetails", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: "$receiverDetails", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        _id: 0,
+        trxId: 1,
+        transactionType: 1,
+        sender: 1,
+        receiver: 1,
+        amount: 1,
+        fee: 1,
+        commission: 1,
+        netAmount: 1,
+        createdAt: 1,
+        senderName: "$senderDetails.name",
+        receiverName: "$receiverDetails.name",
+      },
+    },
+  ]);
+
   return data;
 };
 
