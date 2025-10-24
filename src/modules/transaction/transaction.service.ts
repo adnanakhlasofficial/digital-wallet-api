@@ -1,6 +1,10 @@
 import { JwtPayload } from "jsonwebtoken";
 import { Wallet } from "../wallet/wallet.model";
-import { ITransactionPayload } from "./transaction.interface";
+import {
+  ITransaction,
+  ITransactionPayload,
+  TransactionType,
+} from "./transaction.interface";
 import { getTransactionId } from "../../utils/trxUtils";
 import { Transaction } from "./transaction.model";
 
@@ -23,8 +27,9 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     }
   );
 
-  const transactionPayload = {
+  const transactionPayload: Partial<ITransaction> = {
     trxId: getTransactionId(),
+    transactionType: TransactionType.SendBonus,
     sender: senderDetails?.phone,
     receiver: receiverDetails?.phone,
     amount: totalAmount,
@@ -36,4 +41,9 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
   return data;
 };
 
-export const TransactionService = { sendBonus };
+const getAllTransactions = async () => {
+  const data = await Transaction.find();
+  return data;
+};
+
+export const TransactionService = { sendBonus, getAllTransactions };

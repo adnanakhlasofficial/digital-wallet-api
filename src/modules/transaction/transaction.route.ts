@@ -8,10 +8,16 @@ import { transactionPayloadSchema } from "./transaction.zod";
 const router = Router();
 
 router.post(
-  "/",
+  "/send-bonus",
   checkAuth(UserRole.ADMIN),
   zodValidate(transactionPayloadSchema),
   TransactionController.sendBonus
+);
+
+router.get(
+  "/all",
+  checkAuth(UserRole.ADMIN),
+  TransactionController.getAllTransactions
 );
 
 export const TransactionRouter = router;

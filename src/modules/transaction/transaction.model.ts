@@ -1,9 +1,17 @@
 import { model, Schema } from "mongoose";
-import { ITransaction } from "./transaction.interface";
+import { ITransaction, TransactionType } from "./transaction.interface";
 
 const transactionSchema = new Schema<ITransaction>(
   {
     trxId: { type: String, required: true, unique: true },
+    transactionType: {
+      type: String,
+      required: true,
+      enum: {
+        values: Object.values(TransactionType),
+        message: "{VALUE} is not acceptable",
+      },
+    },
     sender: { type: String, required: true },
     receiver: { type: String, required: true },
     amount: { type: Number, required: true },

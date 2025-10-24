@@ -17,4 +17,14 @@ const sendBonus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const TransactionController = { sendBonus };
+const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
+  const data = await TransactionService.getAllTransactions();
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "All transactions retrieved successfully.",
+    data,
+  });
+});
+
+export const TransactionController = { sendBonus, getAllTransactions };
