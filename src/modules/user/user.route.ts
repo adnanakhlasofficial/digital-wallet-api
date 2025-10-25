@@ -13,7 +13,11 @@ router.post(
   UserController.createUser
 );
 
-router.get("/all", checkAuth(UserRole.ADMIN), UserController.getAllUsers);
+router.get(
+  "/all",
+  checkAuth(...Object.values(UserRole)),
+  UserController.getAllUsers
+);
 
 router.get("/me", checkAuth(...Object.values(UserRole)), UserController.getMe);
 router.get("/:email", checkAuth(UserRole.ADMIN), UserController.getSingleUser);

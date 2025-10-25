@@ -10,6 +10,7 @@ import { Transaction } from "./transaction.model";
 import { IUser, UserRole } from "../user/user.interface";
 import AppError from "../../helpers/AppError";
 import httpStatus from "http-status-codes";
+import { env } from "../../configs/env";
 
 const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
   const totalAmount = payload.amount;
@@ -80,6 +81,14 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
     );
   }
 
+  await Wallet.findOneAndUpdate(
+    { phone: env.ADMIN_PHONE },
+    {
+      $inc: { balance: fee },
+    },
+    { new: true, projection: { _id: 0, user: 0 } }
+  );
+
   const transactionPayload: Partial<ITransaction> = {
     trxId: getTransactionId(),
     transactionType: TransactionType.SendMoney,
@@ -142,8 +151,59 @@ const getAllTransactions = async () => {
   return data;
 };
 
+const getAllMyTransactions = async (user: JwtPayload) => {
+  const data = await Transaction.aggregate([
+    {
+      $match: {
+        $or: [{ sender: user.phone }, { receiver: user.phone }],
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "sender",
+        foreignField: "phone", // assuming phone is the match field
+        as: "senderDetails",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "receiver",
+        foreignField: "phone", // same assumption
+        as: "receiverDetails",
+      },
+    },
+    {
+      $unwind: { path: "$senderDetails", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: "$receiverDetails", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        _id: 0,
+        trxId: 1,
+        transactionType: 1,
+        sender: 1,
+        receiver: 1,
+        amount: 1,
+        fee: 1,
+        commission: 1,
+        netAmount: 1,
+        createdAt: 1,
+        senderName: "$senderDetails.name",
+        receiverName: "$receiverDetails.name",
+      },
+    },
+  ]);
+
+  return data;
+};
+
 export const TransactionService = {
   sendBonus,
   sendMoney,
   getAllTransactions,
+  getAllMyTransactions,
 };

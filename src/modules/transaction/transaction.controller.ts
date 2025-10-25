@@ -37,9 +37,20 @@ const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
     data,
   });
 });
+const getAllMyTransactions = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const data = await TransactionService.getAllMyTransactions(user);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "All transactions retrieved successfully.",
+    data,
+  });
+});
 
 export const TransactionController = {
   sendBonus,
   sendMoney,
   getAllTransactions,
+  getAllMyTransactions,
 };

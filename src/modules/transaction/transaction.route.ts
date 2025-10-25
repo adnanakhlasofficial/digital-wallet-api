@@ -26,5 +26,10 @@ router.get(
   checkAuth(UserRole.ADMIN),
   TransactionController.getAllTransactions
 );
+router.get(
+  "/all/my",
+  checkAuth(...Object.values(UserRole)),
+  TransactionController.getAllMyTransactions
+);
 
 export const TransactionRouter = router;

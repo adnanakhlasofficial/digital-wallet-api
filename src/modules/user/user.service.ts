@@ -30,10 +30,10 @@ const createUser = async (payload: IUser) => {
   return { ...safeUser, ...safeWallet };
 };
 
-const getAllUsers = async () => {
-  const data = await User.find({ role: { $ne: "Admin" } }).select(
-    "-_id -password"
-  );
+const getAllUsers = async (user: IUser) => {
+  const data = await User.find({
+    $and: [{ role: { $ne: "Admin" } }, { name: { $ne: user?.name } }],
+  }).select("-_id -password");
   return data;
 };
 
