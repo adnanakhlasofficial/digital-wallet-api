@@ -216,6 +216,7 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
     receiver: receiverDetails?.phone,
     amount: totalAmount,
     fee,
+    commission,
     netAmount,
   };
 
