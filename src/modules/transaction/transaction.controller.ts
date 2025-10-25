@@ -28,6 +28,30 @@ const sendMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const cashIn = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const payload = req.body;
+  const data = await TransactionService.cashIn(payload, user);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Cash In transaction successful.",
+    data,
+  });
+});
+
+const cashOut = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const payload = req.body;
+  const data = await TransactionService.cashOut(payload, user);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Cash Out transaction successful.",
+    data,
+  });
+});
+
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
   const data = await TransactionService.getAllTransactions();
   sendResponse(res, {
@@ -37,6 +61,7 @@ const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
     data,
   });
 });
+
 const getAllMyTransactions = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
   const data = await TransactionService.getAllMyTransactions(user);
@@ -51,6 +76,8 @@ const getAllMyTransactions = catchAsync(async (req: Request, res: Response) => {
 export const TransactionController = {
   sendBonus,
   sendMoney,
+  cashIn,
+  cashOut,
   getAllTransactions,
   getAllMyTransactions,
 };

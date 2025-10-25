@@ -21,6 +21,20 @@ router.post(
   TransactionController.sendMoney
 );
 
+router.post(
+  "/cash-in",
+  checkAuth(UserRole.AGENT),
+  zodValidate(transactionPayloadSchema),
+  TransactionController.cashIn
+);
+
+router.post(
+  "/cash-out",
+  checkAuth(UserRole.USER),
+  zodValidate(transactionPayloadSchema),
+  TransactionController.cashOut
+);
+
 router.get(
   "/all",
   checkAuth(UserRole.ADMIN),

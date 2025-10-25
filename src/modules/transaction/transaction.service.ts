@@ -5,7 +5,12 @@ import {
   ITransactionPayload,
   TransactionType,
 } from "./transaction.interface";
-import { getFee, getTotalAmount, getTransactionId } from "../../utils/trxUtils";
+import {
+  getCommission,
+  getFee,
+  getTotalAmount,
+  getTransactionId,
+} from "../../utils/trxUtils";
 import { Transaction } from "./transaction.model";
 import { IUser, UserRole } from "../user/user.interface";
 import AppError from "../../helpers/AppError";
@@ -65,7 +70,7 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
   const receiverDetails = await Wallet.findOneAndUpdate(
     { phone: payload.receiver },
     {
-      $inc: { balance: totalAmount },
+      $inc: { balance: netAmount },
     },
     { new: true }
   ).populate<{ user: IUser }>("user");
@@ -92,6 +97,121 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
   const transactionPayload: Partial<ITransaction> = {
     trxId: getTransactionId(),
     transactionType: TransactionType.SendMoney,
+    sender: senderDetails?.phone,
+    receiver: receiverDetails?.phone,
+    amount: totalAmount,
+    fee,
+    netAmount,
+  };
+
+  const { _id, ...data } = (
+    await Transaction.insertOne(transactionPayload)
+  ).toObject();
+
+  return transactionPayload;
+};
+
+const cashIn = async (payload: ITransactionPayload, sender: JwtPayload) => {
+  const netAmount = payload.amount;
+  const fee = getFee(netAmount);
+  const totalAmount = getTotalAmount(netAmount, fee);
+
+  const senderDetails = await Wallet.findOneAndUpdate(
+    { phone: sender.phone },
+    {
+      $inc: { balance: -totalAmount },
+    },
+    { new: true, projection: { _id: 0, user: 0 } }
+  );
+
+  const receiverDetails = await Wallet.findOneAndUpdate(
+    { phone: payload.receiver },
+    {
+      $inc: { balance: netAmount },
+    },
+    { new: true }
+  ).populate<{ user: IUser }>("user");
+
+  if (!receiverDetails) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Request user not found.");
+  }
+
+  if (receiverDetails?.user?.role !== UserRole.USER) {
+    throw new AppError(
+      httpStatus.BAD_GATEWAY,
+      "Cash In transactions are only allowed between AGENT to USER accounts"
+    );
+  }
+
+  await Wallet.findOneAndUpdate(
+    { phone: env.ADMIN_PHONE },
+    {
+      $inc: { balance: fee },
+    },
+    { new: true, projection: { _id: 0, user: 0 } }
+  );
+
+  const transactionPayload: Partial<ITransaction> = {
+    trxId: getTransactionId(),
+    transactionType: TransactionType.CashIn,
+    sender: senderDetails?.phone,
+    receiver: receiverDetails?.phone,
+    amount: totalAmount,
+    fee,
+    netAmount,
+  };
+
+  const { _id, ...data } = (
+    await Transaction.insertOne(transactionPayload)
+  ).toObject();
+
+  return transactionPayload;
+};
+
+const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
+  const netAmount = payload.amount;
+  const fee = getFee(netAmount);
+  const commission = getCommission(netAmount);
+  const totalAmount = getTotalAmount(netAmount, fee, commission);
+
+  const senderDetails = await Wallet.findOneAndUpdate(
+    { phone: sender.phone },
+    {
+      $inc: { balance: -totalAmount },
+    },
+    { new: true, projection: { _id: 0, user: 0 } }
+  );
+
+  const receiverDetails = await Wallet.findOneAndUpdate(
+    { phone: payload.receiver },
+    {
+      $inc: { balance: netAmount },
+    },
+    { new: true }
+  ).populate<{ user: IUser }>("user");
+
+  if (!receiverDetails) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Request user not found.");
+  }
+
+  if (receiverDetails?.user?.role !== UserRole.AGENT) {
+    throw new AppError(
+      httpStatus.BAD_GATEWAY,
+      "Cash Out transactions are only allowed between USER to AGENT accounts"
+    );
+  }
+
+  await Wallet.findOneAndUpdate(
+    { phone: env.ADMIN_PHONE },
+    {
+      $inc: { balance: fee },
+    },
+    { new: true, projection: { _id: 0, user: 0 } }
+  );
+
+  const transactionPayload: Partial<ITransaction> = {
+    trxId: getTransactionId(),
+    transactionType: TransactionType.CashOut,
     sender: senderDetails?.phone,
     receiver: receiverDetails?.phone,
     amount: totalAmount,
@@ -204,6 +324,8 @@ const getAllMyTransactions = async (user: JwtPayload) => {
 export const TransactionService = {
   sendBonus,
   sendMoney,
+  cashIn,
+  cashOut,
   getAllTransactions,
   getAllMyTransactions,
 };

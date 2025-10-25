@@ -9,6 +9,11 @@ export function getFee(amount: number): number {
   return parseFloat((amount * feeRate).toFixed(2));
 }
 
+export function getCommission(amount: number): number {
+  const feeRate = 1.89 / 100;
+  return parseFloat((amount * feeRate).toFixed(2));
+}
+
 export function getTotalAmount(
   amount: number,
   fee: number,
