@@ -292,7 +292,9 @@ const getAllTransactions = async (query: any) => {
 };
 
 const getAllMyTransactions = async (user: JwtPayload, query: any) => {
-  const totalTransactions = await Transaction.countDocuments();
+  const totalTransactions = await Transaction.find({
+    $or: [{ sender: user.phone }, { receiver: user.phone }],
+  }).countDocuments();
   const currentPage = Number(query.currentPage) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (currentPage - 1) * limit || 0;
