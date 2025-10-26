@@ -46,6 +46,7 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     sender: senderDetails?.phone,
     receiver: receiverDetails?.phone,
     amount: totalAmount,
+    netAmount: totalAmount,
   };
 
   const { _id, ...data } = (
@@ -227,7 +228,13 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
   return transactionPayload;
 };
 
-const getAllTransactions = async () => {
+const getAllTransactions = async (query: any) => {
+  const totalTransactions = await Transaction.countDocuments();
+  const currentPage = Number(query.currentPage) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (currentPage - 1) * limit || 0;
+  const totalPages = Math.ceil(totalTransactions / limit);
+
   const data = await Transaction.aggregate([
     {
       $lookup: {
@@ -267,12 +274,30 @@ const getAllTransactions = async () => {
         receiverName: "$receiverDetails.name",
       },
     },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
   ]);
 
-  return data;
+  const meta = { totalTransactions, totalPages, currentPage, limit };
+  return { data, meta };
 };
 
-const getAllMyTransactions = async (user: JwtPayload) => {
+const getAllMyTransactions = async (user: JwtPayload, query: any) => {
+  const totalTransactions = await Transaction.countDocuments();
+  const currentPage = Number(query.currentPage) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (currentPage - 1) * limit || 0;
+  const totalPages = Math.ceil(totalTransactions / limit);
+
   const data = await Transaction.aggregate([
     {
       $match: {
@@ -317,9 +342,22 @@ const getAllMyTransactions = async (user: JwtPayload) => {
         receiverName: "$receiverDetails.name",
       },
     },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
   ]);
 
-  return data;
+  const meta = { totalTransactions, totalPages, currentPage, limit };
+
+  return { data, meta };
 };
 
 export const TransactionService = {

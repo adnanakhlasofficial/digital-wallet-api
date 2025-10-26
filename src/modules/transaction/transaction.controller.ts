@@ -53,23 +53,30 @@ const cashOut = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
-  const data = await TransactionService.getAllTransactions();
+  const query = req.query;
+  const { data, meta } = await TransactionService.getAllTransactions(query);
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "All transactions retrieved successfully.",
-    data,
+    data: data,
+    meta: meta,
   });
 });
 
 const getAllMyTransactions = catchAsync(async (req: Request, res: Response) => {
+  const query = req.query;
   const user = req.user;
-  const data = await TransactionService.getAllMyTransactions(user);
+  const { data, meta } = await TransactionService.getAllMyTransactions(
+    user,
+    query
+  );
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "All transactions retrieved successfully.",
-    data,
+    data: data,
+    meta: meta,
   });
 });
 

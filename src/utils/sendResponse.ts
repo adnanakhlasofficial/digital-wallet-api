@@ -2,7 +2,7 @@ import { Response } from "express";
 
 interface meta {
   limit: number;
-  page: number;
+  currentPage: number;
   totalPages: number;
   [key: string]: number;
 }
@@ -20,6 +20,6 @@ export const sendResponse = <T>(res: Response, data: responseData<T>) => {
     success: data.success,
     message: data.message,
     ...(data.data && { data: data.data }),
-    ...(data.meta && { data: data.meta }),
+    ...(data.meta && { meta: data.meta }),
   });
 };
