@@ -8,17 +8,17 @@ export enum TransactionType {
 }
 
 export interface ITransaction {
-  _id: Types.ObjectId;
+  _id?: Types.ObjectId;
   trxId: string;
   transactionType: TransactionType;
   sender: string;
   receiver: string;
   amount: number;
-  fee: number;
+  fee?: number;
   commission?: number;
   netAmount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type ITransactionPayload = Pick<ITransaction, "amount" | "receiver">;

@@ -7,7 +7,7 @@ import { TransactionService } from "./transaction.service";
 const sendBonus = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
   const payload = req.body;
-  const data = await TransactionService.sendMoney(payload, user);
+  const data = await TransactionService.sendBonus(payload, user);
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
