@@ -9,7 +9,16 @@ const createWallet = async ({ user, email, phone }: ICreateWallet) => {
   return data;
 };
 
-const getAllWallets = async () => {
+const getAllWallets = async (query: any) => {
+  const totalWallets = await Wallet.find({
+    email: { $ne: env.ADMIN_EMAIL },
+  }).countDocuments();
+
+  const currentPage = Number(query.currentPage) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (currentPage - 1) * limit || 0;
+  const totalPages = Math.ceil(totalWallets / limit);
+
   const data = await Wallet.aggregate([
     {
       $match: {
@@ -40,8 +49,22 @@ const getAllWallets = async () => {
         _id: 0,
       },
     },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
   ]);
-  return data;
+
+  const meta = { totalWallets, totalPages, currentPage, limit };
+
+  return { data, meta };
 };
 
 const getSingleWallet = async (phone: string) => {

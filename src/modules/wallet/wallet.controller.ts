@@ -5,12 +5,14 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 
 const getAllWallet = catchAsync(async (req: Request, res: Response) => {
-  const data = await WalletService.getAllWallets();
+  const query = req.query;
+  const { data, meta } = await WalletService.getAllWallets(query);
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "All wallets retrieved successfully.",
     data,
+    meta,
   });
 });
 
