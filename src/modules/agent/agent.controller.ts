@@ -6,11 +6,16 @@ import httpStatus from "http-status-codes";
 
 const agentRequest = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
-  const data = await AgentService.agentRequest(payload);
+  const { data, isExist } = await AgentService.agentRequest(payload);
+
+  const message = isExist
+    ? "An agent request with this email already exists."
+    : "Your request has been submitted successfully. Please wait for admin approval.";
+
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: "Request completed successfully.",
+    message,
     data,
   });
 });
