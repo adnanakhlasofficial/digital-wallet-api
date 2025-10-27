@@ -21,12 +21,14 @@ const agentRequest = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllAgentRequests = catchAsync(async (req: Request, res: Response) => {
-  const data = await AgentService.getAllAgentRequests();
+  const query = req.query;
+  const { data, meta } = await AgentService.getAllAgentRequests(query);
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "All requests retrieved successfully.",
     data,
+    meta,
   });
 });
 
