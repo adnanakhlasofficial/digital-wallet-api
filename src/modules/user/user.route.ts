@@ -7,6 +7,7 @@ import { CreateUserSchema } from "./user.zod";
 import { AgentRouter } from "../agent/agent.route";
 
 const router = Router();
+router.use("/agent", AgentRouter);
 
 router.post(
   "/create",
@@ -27,7 +28,5 @@ router.patch(
   checkAuth(UserRole.ADMIN),
   UserController.setUserVerificationStatus
 );
-
-router.use("/agent", AgentRouter);
 
 export const UserRouter = router;

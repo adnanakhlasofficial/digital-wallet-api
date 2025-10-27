@@ -14,6 +14,17 @@ router.post(
   AgentController.agentRequest
 );
 
+router.patch(
+  "/request/accept/:email",
+  checkAuth(UserRole.ADMIN),
+  AgentController.acceptRequest
+);
+router.patch(
+  "/request/reject/:email",
+  checkAuth(UserRole.ADMIN),
+  AgentController.rejectRequest
+);
+
 router.get(
   "/requests",
   checkAuth(UserRole.ADMIN),

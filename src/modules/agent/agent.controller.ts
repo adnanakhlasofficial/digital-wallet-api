@@ -32,4 +32,30 @@ const getAllAgentRequests = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const AgentController = { agentRequest, getAllAgentRequests };
+const acceptRequest = catchAsync(async (req: Request, res: Response) => {
+  const email = req.params.email;
+  const data = await AgentService.acceptRequest(email);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Agent request approved.",
+    data,
+  });
+});
+const rejectRequest = catchAsync(async (req: Request, res: Response) => {
+  const email = req.params.email;
+  const data = await AgentService.rejectRequest(email);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Agent request rejected.",
+    data,
+  });
+});
+
+export const AgentController = {
+  agentRequest,
+  getAllAgentRequests,
+  acceptRequest,
+  rejectRequest,
+};
