@@ -3,9 +3,11 @@ import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
 import { env } from "../../configs/env";
 import AppError from "../../helpers/AppError";
+import { AgentService } from "../agent/agent.service";
 import { WalletService } from "../wallet/wallet.service";
-import { IUser } from "./user.interface";
+import { IUser, UserRole } from "./user.interface";
 import { User } from "./user.model";
+import { AgentRequestStatus } from "../agent/agent.interface";
 
 const createUser = async (payload: IUser) => {
   const hashedPassword = await bcrypt.hash(
@@ -15,7 +17,16 @@ const createUser = async (payload: IUser) => {
 
   payload.password = hashedPassword;
 
-  const user = await User.create(payload);
+  const user = new User(payload);
+
+  if (user.role === UserRole.AGENT) {
+    user.isVerified = false;
+    await AgentService.agentRequest({
+      email: user.email,
+      message: "A new agent application has been submitted successfully.",
+      status: AgentRequestStatus.PENDING,
+    });
+  }
 
   const walletCreateInfo = {
     user: user._id,
@@ -24,8 +35,9 @@ const createUser = async (payload: IUser) => {
   };
 
   const wallet = await WalletService.createWallet(walletCreateInfo);
+  const data = await user.save();
 
-  const { _id: userID, password, ...safeUser } = user.toObject();
+  const { _id: userID, password, ...safeUser } = data.toObject();
   const { _id: WalletID, user: WalletUser, ...safeWallet } = wallet.toObject();
 
   return { ...safeUser, ...safeWallet };
