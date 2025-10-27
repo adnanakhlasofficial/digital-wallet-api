@@ -4,6 +4,7 @@ import { zodValidate } from "../../middlewares/zod.middleware";
 import { UserController } from "./user.controller";
 import { UserRole } from "./user.interface";
 import { CreateUserSchema } from "./user.zod";
+import { AgentRouter } from "../agent/agent.route";
 
 const router = Router();
 
@@ -26,5 +27,7 @@ router.patch(
   checkAuth(UserRole.ADMIN),
   UserController.setUserVerificationStatus
 );
+
+router.use("/agent", AgentRouter);
 
 export const UserRouter = router;
