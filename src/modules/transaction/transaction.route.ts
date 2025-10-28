@@ -35,6 +35,13 @@ router.post(
   TransactionController.cashOut
 );
 
+router.post(
+  "/agent-transfer",
+  checkAuth(UserRole.AGENT),
+  zodValidate(transactionPayloadSchema),
+  TransactionController.agentTransfer
+);
+
 router.get(
   "/all",
   checkAuth(UserRole.ADMIN),

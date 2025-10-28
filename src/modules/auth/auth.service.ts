@@ -17,7 +17,10 @@ export const login = async (payload: IAuthCredentials) => {
     );
   }
 
-  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+  const isPasswordValid = await bcrypt.compare(
+    payload.password,
+    user.password as string
+  );
 
   if (!isPasswordValid) {
     throw new AppError(

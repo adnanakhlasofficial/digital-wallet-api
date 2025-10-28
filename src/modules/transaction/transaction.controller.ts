@@ -52,6 +52,18 @@ const cashOut = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const agentTransfer = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const payload = req.body;
+  const data = await TransactionService.agentTransfer(payload, user);
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Agent Transfer transaction successful.",
+    data,
+  });
+});
+
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
   const query = req.query;
   const { data, meta } = await TransactionService.getAllTransactions(query);
@@ -85,6 +97,7 @@ export const TransactionController = {
   sendMoney,
   cashIn,
   cashOut,
+  agentTransfer,
   getAllTransactions,
   getAllMyTransactions,
 };

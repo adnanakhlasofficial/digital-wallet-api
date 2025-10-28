@@ -5,6 +5,7 @@ export enum TransactionType {
   SendMoney = "Send Money",
   CashIn = "Cash In",
   CashOut = "Cash Out",
+  AgentTransfer = "Agent Transfer",
 }
 
 export interface ITransaction {

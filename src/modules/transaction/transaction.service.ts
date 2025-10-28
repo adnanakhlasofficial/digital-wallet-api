@@ -420,6 +420,115 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
   }
 };
 
+const agentTransfer = async (
+  payload: ITransactionPayload,
+  sender: JwtPayload
+) => {
+  const netAmount = payload.amount;
+  const fee = getFee(netAmount);
+  const commission = getCommission(netAmount);
+  const totalAmount = getTotalAmount(netAmount, fee, commission);
+
+  const session = await startSession();
+
+  try {
+    session.startTransaction();
+
+    // 1️⃣ Fetch both sender (USER) and receiver (AGENT) wallets
+    const senderWallet = await Wallet.findOne({ phone: sender.phone }, null, {
+      session,
+    }).populate<{ user: IUser }>("user");
+
+    const receiverWallet = await Wallet.findOne(
+      { phone: payload.receiver },
+      null,
+      { session }
+    ).populate<{ user: IUser }>("user");
+
+    // 2️⃣ Validate wallets
+    if (!senderWallet) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent wallet not found.");
+    }
+    if (!receiverWallet) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent wallet not found.");
+    }
+
+    if (
+      senderWallet.status !== WalletStatus.ACTIVE ||
+      !senderWallet.user.isVerified
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Agent wallet is not active or verified."
+      );
+    }
+
+    if (
+      receiverWallet.status !== WalletStatus.ACTIVE ||
+      !receiverWallet.user.isVerified
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Agent wallet is not active or verified."
+      );
+    }
+
+    if (receiverWallet.user.role !== UserRole.AGENT) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Agent Transfer transactions are only allowed between AGENT accounts."
+      );
+    }
+
+    if (senderWallet.balance < totalAmount) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance.");
+    }
+
+    // 3️⃣ Update balances
+    const updatedSender = await Wallet.findOneAndUpdate(
+      { phone: sender.phone },
+      { $inc: { balance: -totalAmount } },
+      { new: true, session }
+    );
+
+    const updatedReceiver = await Wallet.findOneAndUpdate(
+      { phone: payload.receiver },
+      { $inc: { balance: netAmount + commission } },
+      { new: true, session }
+    );
+
+    // 4️⃣ Update admin wallet with fee
+    await Wallet.findOneAndUpdate(
+      { phone: env.ADMIN_PHONE },
+      { $inc: { balance: fee } },
+      { new: true, session }
+    );
+
+    // 6️⃣ Create transaction record
+    const transactionPayload: ITransaction = {
+      trxId: getTransactionId(),
+      transactionType: TransactionType.AgentTransfer,
+      sender: updatedSender?.phone as string,
+      receiver: updatedReceiver?.phone as string,
+      amount: totalAmount,
+      fee,
+      commission,
+      netAmount,
+    };
+
+    const [data] = await Transaction.create([transactionPayload], { session });
+
+    await session.commitTransaction();
+    return data;
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Agent Transfer Transaction Failed:", error);
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
 const getAllTransactions = async (query: any) => {
   const totalTransactions = await Transaction.countDocuments();
   const currentPage = Number(query.currentPage) || 1;
@@ -559,6 +668,7 @@ export const TransactionService = {
   sendMoney,
   cashIn,
   cashOut,
+  agentTransfer,
   getAllTransactions,
   getAllMyTransactions,
 };
