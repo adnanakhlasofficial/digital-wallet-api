@@ -1,5 +1,6 @@
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
+import { startSession } from "mongoose";
 import { env } from "../../configs/env";
 import AppError from "../../helpers/AppError";
 import {
@@ -9,15 +10,15 @@ import {
   getTransactionId,
 } from "../../utils/trxUtils";
 import { IUser, UserRole } from "../user/user.interface";
+import { WalletStatus } from "../wallet/wallet.interfaces";
 import { Wallet } from "../wallet/wallet.model";
+import { getPipeline } from "./transaction.constrain";
 import {
   ITransaction,
   ITransactionPayload,
   TransactionType,
 } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
-import { WalletStatus } from "../wallet/wallet.interfaces";
-import { startSession } from "mongoose";
 
 const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
   const totalAmount = payload.amount;
@@ -34,7 +35,7 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const receiverWallet = await Wallet.findOne(
       { phone: payload.receiver },
       null,
-      { session }
+      { session },
     ).populate<{ user: IUser }>("user");
 
     // 2️⃣ Validate wallets
@@ -51,7 +52,7 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Sender wallet is not active or verified."
+        "Sender wallet is not active or verified.",
       );
     }
 
@@ -61,7 +62,7 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Receiver wallet is not active or verified."
+        "Receiver wallet is not active or verified.",
       );
     }
 
@@ -73,13 +74,13 @@ const sendBonus = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const updatedSender = await Wallet.findOneAndUpdate(
       { phone: sender.phone },
       { $inc: { balance: -totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     const updatedReceiver = await Wallet.findOneAndUpdate(
       { phone: payload.receiver },
       { $inc: { balance: totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 4️⃣ Create transaction record
@@ -125,7 +126,7 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const receiverWallet = await Wallet.findOne(
       { phone: payload.receiver },
       null,
-      { session }
+      { session },
     ).populate<{ user: IUser }>("user");
 
     // 2️⃣ Validate wallets
@@ -142,7 +143,7 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Sender wallet is not active or verified."
+        "Sender wallet is not active or verified.",
       );
     }
 
@@ -152,14 +153,14 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Receiver wallet is not active or verified."
+        "Receiver wallet is not active or verified.",
       );
     }
 
     if (receiverWallet.user.role !== UserRole.USER) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Send Money transactions are only allowed between USER accounts."
+        "Send Money transactions are only allowed between USER accounts.",
       );
     }
 
@@ -171,20 +172,20 @@ const sendMoney = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const updatedSender = await Wallet.findOneAndUpdate(
       { phone: sender.phone },
       { $inc: { balance: -totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     const updatedReceiver = await Wallet.findOneAndUpdate(
       { phone: payload.receiver },
       { $inc: { balance: netAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 4️⃣ Update admin wallet with fee
     await Wallet.findOneAndUpdate(
       { phone: env.ADMIN_PHONE },
       { $inc: { balance: fee } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 5️⃣ Create transaction record
@@ -228,7 +229,7 @@ const cashIn = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const receiverWallet = await Wallet.findOne(
       { phone: payload.receiver },
       null,
-      { session }
+      { session },
     ).populate<{ user: IUser }>("user");
 
     // 2️⃣ Validate wallets
@@ -245,7 +246,7 @@ const cashIn = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Agent wallet is not active or verified."
+        "Agent wallet is not active or verified.",
       );
     }
 
@@ -255,14 +256,14 @@ const cashIn = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Receiver wallet is not active or verified."
+        "Receiver wallet is not active or verified.",
       );
     }
 
     if (receiverWallet.user.role !== UserRole.USER) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Cash In transactions are only allowed from AGENT to USER accounts."
+        "Cash In transactions are only allowed from AGENT to USER accounts.",
       );
     }
 
@@ -274,20 +275,20 @@ const cashIn = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const updatedSender = await Wallet.findOneAndUpdate(
       { phone: sender.phone },
       { $inc: { balance: -totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     const updatedReceiver = await Wallet.findOneAndUpdate(
       { phone: payload.receiver },
       { $inc: { balance: netAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 4️⃣ Update admin wallet with fee
     await Wallet.findOneAndUpdate(
       { phone: env.ADMIN_PHONE },
       { $inc: { balance: fee } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 5️⃣ Create transaction record
@@ -333,7 +334,7 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const receiverWallet = await Wallet.findOne(
       { phone: payload.receiver },
       null,
-      { session }
+      { session },
     ).populate<{ user: IUser }>("user");
 
     // 2️⃣ Validate wallets
@@ -350,7 +351,7 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "User wallet is not active or verified."
+        "User wallet is not active or verified.",
       );
     }
 
@@ -360,14 +361,14 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Agent wallet is not active or verified."
+        "Agent wallet is not active or verified.",
       );
     }
 
     if (receiverWallet.user.role !== UserRole.AGENT) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Cash Out transactions are only allowed from USER to AGENT accounts."
+        "Cash Out transactions are only allowed from USER to AGENT accounts.",
       );
     }
 
@@ -379,20 +380,20 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
     const updatedSender = await Wallet.findOneAndUpdate(
       { phone: sender.phone },
       { $inc: { balance: -totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     const updatedReceiver = await Wallet.findOneAndUpdate(
       { phone: payload.receiver },
       { $inc: { balance: netAmount + commission } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 4️⃣ Update admin wallet with fee
     await Wallet.findOneAndUpdate(
       { phone: env.ADMIN_PHONE },
       { $inc: { balance: fee } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 6️⃣ Create transaction record
@@ -422,7 +423,7 @@ const cashOut = async (payload: ITransactionPayload, sender: JwtPayload) => {
 
 const agentTransfer = async (
   payload: ITransactionPayload,
-  sender: JwtPayload
+  sender: JwtPayload,
 ) => {
   const netAmount = payload.amount;
   const fee = getFee(netAmount);
@@ -442,7 +443,7 @@ const agentTransfer = async (
     const receiverWallet = await Wallet.findOne(
       { phone: payload.receiver },
       null,
-      { session }
+      { session },
     ).populate<{ user: IUser }>("user");
 
     // 2️⃣ Validate wallets
@@ -459,7 +460,7 @@ const agentTransfer = async (
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Agent wallet is not active or verified."
+        "Agent wallet is not active or verified.",
       );
     }
 
@@ -469,14 +470,14 @@ const agentTransfer = async (
     ) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Agent wallet is not active or verified."
+        "Agent wallet is not active or verified.",
       );
     }
 
     if (receiverWallet.user.role !== UserRole.AGENT) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        "Agent Transfer transactions are only allowed between AGENT accounts."
+        "Agent Transfer transactions are only allowed between AGENT accounts.",
       );
     }
 
@@ -488,20 +489,20 @@ const agentTransfer = async (
     const updatedSender = await Wallet.findOneAndUpdate(
       { phone: sender.phone },
       { $inc: { balance: -totalAmount } },
-      { new: true, session }
+      { new: true, session },
     );
 
     const updatedReceiver = await Wallet.findOneAndUpdate(
       { phone: payload.receiver },
       { $inc: { balance: netAmount + commission } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 4️⃣ Update admin wallet with fee
     await Wallet.findOneAndUpdate(
       { phone: env.ADMIN_PHONE },
       { $inc: { balance: fee } },
-      { new: true, session }
+      { new: true, session },
     );
 
     // 6️⃣ Create transaction record
@@ -530,133 +531,38 @@ const agentTransfer = async (
 };
 
 const getAllTransactions = async (query: any) => {
-  const totalTransactions = await Transaction.countDocuments();
+  const search = query.search || "";
   const currentPage = Number(query.currentPage) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (currentPage - 1) * limit || 0;
+  const result = await Transaction.aggregate(
+    getPipeline(search, skip, limit, true),
+  );
+
+  const totalTransactions = result[0]?.totalTransaction;
   const totalPages = Math.ceil(totalTransactions / limit);
 
-  const data = await Transaction.aggregate([
-    {
-      $lookup: {
-        from: "users",
-        localField: "sender",
-        foreignField: "phone", // assuming phone is the match field
-        as: "senderDetails",
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "receiver",
-        foreignField: "phone", // same assumption
-        as: "receiverDetails",
-      },
-    },
-    {
-      $unwind: { path: "$senderDetails", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $unwind: { path: "$receiverDetails", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $project: {
-        _id: 0,
-        trxId: 1,
-        transactionType: 1,
-        sender: 1,
-        receiver: 1,
-        amount: 1,
-        fee: 1,
-        commission: 1,
-        netAmount: 1,
-        createdAt: 1,
-        senderName: "$senderDetails.name",
-        receiverName: "$receiverDetails.name",
-      },
-    },
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
+  const data = await Transaction.aggregate(getPipeline(search, skip, limit));
 
   const meta = { totalTransactions, totalPages, currentPage, limit };
   return { data, meta };
 };
 
 const getAllMyTransactions = async (user: JwtPayload, query: any) => {
-  const totalTransactions = await Transaction.find({
-    $or: [{ sender: user.phone }, { receiver: user.phone }],
-  }).countDocuments();
+  const search = query.search || "";
   const currentPage = Number(query.currentPage) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (currentPage - 1) * limit || 0;
+
+  const result = await Transaction.aggregate(
+    getPipeline(search, skip, limit, true, user),
+  );
+  const totalTransactions = result[0].totalTransaction;
   const totalPages = Math.ceil(totalTransactions / limit);
 
-  const data = await Transaction.aggregate([
-    {
-      $match: {
-        $or: [{ sender: user.phone }, { receiver: user.phone }],
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "sender",
-        foreignField: "phone", // assuming phone is the match field
-        as: "senderDetails",
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "receiver",
-        foreignField: "phone", // same assumption
-        as: "receiverDetails",
-      },
-    },
-    {
-      $unwind: { path: "$senderDetails", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $unwind: { path: "$receiverDetails", preserveNullAndEmptyArrays: true },
-    },
-    {
-      $project: {
-        _id: 0,
-        trxId: 1,
-        transactionType: 1,
-        sender: 1,
-        receiver: 1,
-        amount: 1,
-        fee: 1,
-        commission: 1,
-        netAmount: 1,
-        createdAt: 1,
-        senderName: "$senderDetails.name",
-        receiverName: "$receiverDetails.name",
-      },
-    },
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
+  const data = await Transaction.aggregate(
+    getPipeline(search, skip, limit, false, user),
+  );
 
   const meta = { totalTransactions, totalPages, currentPage, limit };
 
