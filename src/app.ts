@@ -11,9 +11,9 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://digital-wallet-a3x.netlify.app"],
+    origin: env.FRONTEND_URL,
     credentials: true,
-  })
+  }),
 ); // Enables Cross-Origin Resource Sharing
 app.use(compression()); // Compresses response bodies for faster delivery
 app.use(express.json()); // Parse incoming JSON requests
