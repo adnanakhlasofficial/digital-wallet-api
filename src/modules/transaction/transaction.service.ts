@@ -539,7 +539,7 @@ const getAllTransactions = async (query: any) => {
     getPipeline(search, skip, limit, true),
   );
 
-  const totalTransactions = result[0]?.totalTransaction;
+  const totalTransactions = result[0]?.totalTransaction  || 0;
   const totalPages = Math.ceil(totalTransactions / limit);
 
   const data = await Transaction.aggregate(getPipeline(search, skip, limit));
@@ -557,7 +557,7 @@ const getAllMyTransactions = async (user: JwtPayload, query: any) => {
   const result = await Transaction.aggregate(
     getPipeline(search, skip, limit, true, user),
   );
-  const totalTransactions = result[0].totalTransaction;
+  const totalTransactions = result[0]?.totalTransaction  || 0;
   const totalPages = Math.ceil(totalTransactions / limit);
 
   const data = await Transaction.aggregate(
