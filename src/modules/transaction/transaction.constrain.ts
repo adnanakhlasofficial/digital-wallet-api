@@ -54,32 +54,8 @@ export function getPipeline(
     {
       $unwind: { path: "$receiverDetails", preserveNullAndEmptyArrays: true },
     },
-  ];
 
-  if (count) {
-    // COUNT MODE → collapse into a single doc
-    return [
-      ...basePipeline,
-      {
-        $group: {
-          _id: null,
-          totalTransaction: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          totalTransaction: 1,
-        },
-      },
-    ];
-  }
-
-  // NORMAL MODE → return paginated documents
-  return [
-    ...basePipeline,
-
-    // Project only needed fields
+    // Project only needed fields (so you can search by projected names)
     {
       $project: {
         _id: 0,
@@ -96,21 +72,45 @@ export function getPipeline(
         receiverName: "$receiverDetails.name",
       },
     },
+  ];
 
-    // Search filter
-    ...(search
-      ? [
-          {
-            $match: {
-              $or: filter.map((query) => ({
-                [query]: { $regex: search, $options: "i" },
-              })),
-            },
+  // Add search filter if provided (both for count and normal mode)
+  const searchFilter: PipelineStage[] = search
+    ? [
+        {
+          $match: {
+            $or: filter.map((field) => ({
+              [field]: { $regex: search, $options: "i" },
+            })),
           },
-        ]
-      : []),
+        },
+      ]
+    : [];
 
-    // Sorting & pagination
+  // COUNT MODE → only return total count after search
+  if (count) {
+    return [
+      ...basePipeline,
+      ...searchFilter,
+      {
+        $group: {
+          _id: null,
+          totalTransaction: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalTransaction: 1,
+        },
+      },
+    ];
+  }
+
+  // NORMAL MODE → paginated transactions
+  return [
+    ...basePipeline,
+    ...searchFilter,
     { $sort: { createdAt: -1 } },
     { $skip: skip },
     { $limit: limit },
